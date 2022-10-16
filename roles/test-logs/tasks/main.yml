@@ -1,0 +1,39 @@
+---
+
+- name: Request from laptop to NGinx Ingress URL
+  shell: "curl http://nginx-to-istio.doubleingress.dev"
+  delegate_to: localhost
+  ignore_errors: true
+
+- name: Request from laptop to Istio Ingress URL
+  shell: "curl http://istio-to-helloworld.doubleingress.dev:{{ istio_nodeport_port.stdout }}"
+  delegate_to: localhost
+  ignore_errors: true
+
+- name: Get last 3 lines of Nginx logs
+  shell: "{{ kubectl_command }} logs $( {{ kubectl_command }} get pods -n ingress | grep nginx-ingress | awk '{ print $1 }' ) -n ingress | tail -n3"
+  become: true
+  register: logs_nginx
+
+- name: Get last 3 lines of Istio logs
+  shell: "{{ kubectl_command }} logs $( {{ kubectl_command }} get pods -n istio-system | grep istio-ingressgateway | awk '{ print $1 }' ) -n istio-system | tail -n3"
+  become: true
+  register: logs_istio
+
+- name: Display last 3 lines of Nginx logs
+  debug:
+    msg: "{{ logs_nginx.stdout_lines }}"
+
+- name: Display last 3 lines of Istio logs
+  debug:
+    msg: "{{ logs_istio.stdout_lines }}"
+
+- name: Get Public IP from localhost
+  shell: "ip --brief addr show | grep {{ bridge_interface }} | awk '{ print $3 }' | sed 's,/.*,,'"
+  become: true
+  register: requestor_ip
+
+- name: Does the Requestor IP exist in the Istio Logs?
+  ansible.builtin.assert:
+    that:
+      - "requestor_ip.stdout in logs_istio.stdout"

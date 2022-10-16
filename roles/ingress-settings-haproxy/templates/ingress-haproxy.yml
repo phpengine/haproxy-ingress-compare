@@ -1,0 +1,53 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: haproxy-to-istio
+  namespace: default
+  annotations:
+    haproxy-ingress.github.io/forwardfor: "add"
+    haproxy-ingress.github.io/backend-protocol: "h2"
+    haproxy-ingress.github.io/secure-backends: "false"
+spec:
+  defaultBackend:
+    service:
+      name: istio-ingressgateway
+      port:
+        name: http2
+  rules:
+  - host: "{{ server_hostname }}"
+    http:
+      paths:
+      - backend:
+          service:
+            name: istio-ingressgateway
+            port:
+              name: http2
+        path: /
+        pathType: Prefix
+  - host: "login.{{ server_hostname }}"
+    http:
+      paths:
+      - backend:
+          service:
+            name: istio-ingressgateway
+            port:
+              name: http2
+        path: /
+        pathType: Prefix
+  - host: "kibana.{{ server_hostname }}"
+    http:
+      paths:
+      - backend:
+          service:
+            name: istio-ingressgateway
+            port:
+              name: http2
+        path: /
+        pathType: Prefix
+  tls:
+    - hosts:
+        - "{{ server_hostname }}"
+        - "login.{{ server_hostname }}"
+        - "kibana.{{ server_hostname }}"
+      secretName: self-signed-certificate

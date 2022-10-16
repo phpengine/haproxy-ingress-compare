@@ -1,0 +1,63 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: IngressClass
+metadata:
+  name: nginx
+spec:
+  controller: kubernetes.io/ingress-controller
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nginx-to-istio-ingress
+  namespace: corpwebsites
+  annotations:
+    compute-full-forwarded-for: "true"
+    use-forwarded-headers: "true"
+spec:
+  ingressClassName: public
+  defaultBackend:
+    resource:
+      apigroup: 'networking.istio.io'
+      kind: Gateway
+      name: vqcm-gateway
+      hosts:
+        - "*"
+      port:
+        name: "http"
+  rules:
+  - host: nginx-to-istio-gateway.doubleingress.dev
+    http:
+      paths:
+      - backend:
+          resource:
+            apigroup: 'networking.istio.io'
+            kind: Gateway
+            name: vqcm-gateway
+            hosts:
+              - "*"
+            port:
+              name: "http"
+        path: /
+#        pathType: Prefix
+        pathType: ImplementationSpecific
+  - host: nginx-to-istio-kservice.doubleingress.dev
+    http:
+      paths:
+      - backend:
+          service:
+            name: vqcomm-helloworld
+            port:
+              number: 80
+        path: /
+        pathType: Prefix
+  - host: nginx-to-service.doubleingress.dev
+    http:
+      paths:
+      - backend:
+          service:
+            name: vqcomm-helloworld
+            port:
+              number: 80
+        path: /
+        pathType: Prefix

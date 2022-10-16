@@ -1,0 +1,44 @@
+---
+
+- name: Check for service to expose helloworld
+  shell: "{{ kubectl_command }} get services -n=corpwebsites | grep fables-helloworld-np"
+  become: true
+  register: helloworld_expose_service_exists
+  ignore_errors: true
+
+- name: Kubectl delete service to expose helloworld
+  shell: "{{ kubectl_command }} delete service -n=corpwebsites fables-helloworld-np"
+  become: true
+  when: helloworld_expose_service_exists.stdout != ""
+
+- name: Kubectl expose helloworld
+  shell: |
+    {{ kubectl_command }} expose service fables-helloworld \
+     -n=corpwebsites \
+     --type=NodePort \
+     --target-port=80 \
+     --name=fables-helloworld-np
+  become: true
+
+- name: Get NodePort IP
+  shell: ip route | tail -n1 | awk '{ print $9 }'
+  register: helloworld_nodeport_ip
+  become: false
+
+- name: Wait a few seconds to be sure service is available
+  pause:
+    seconds: 5
+
+- name: Get NodePort Port
+  shell: |
+    {{ kubectl_command }} get services -o wide -n corpwebsites | \
+      grep fables-helloworld-np | \
+      awk '{ print $5 }' | \
+      sed 's,/.*,,' | \
+      sed 's/.*://'
+  register: helloworld_nodeport_port
+  become: true
+
+- name: Display Helloworld URL
+  debug:
+    msg: "Helloworld URL http://{{ helloworld_nodeport_ip.stdout }}:{{ helloworld_nodeport_port.stdout }}"

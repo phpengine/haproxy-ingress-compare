@@ -1,0 +1,17 @@
+---
+
+- name: Apply kubes config
+#  hosts: vagrant
+  hosts: all
+  become: true
+  gather_facts: true
+
+  roles:
+    - app-deployments
+    - ingress-istio
+    - ingress-nginx
+    - ingress-enable-haproxy
+    - ingress-settings-haproxy
+#    - url-display
+#    - test-logs
+

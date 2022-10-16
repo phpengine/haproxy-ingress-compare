@@ -1,0 +1,20 @@
+---
+
+- name: Ensure Manifests directory
+  shell: mkdir -p /opt/kubes-manifests/haproxy/
+
+- name: Copy manifests
+  copy:
+    src: "templates/haproxy-ingress-daemonset.yaml"
+    dest: "/opt/kubes-manifests/haproxy-ingress-daemonset.yaml"
+
+- name: Remove Haproxy ingress if existing
+  shell: /usr/local/bin/kubectl delete ds haproxy-kubernetes-ingress -n haproxy-controller
+  ignore_errors: true
+
+- name: Apply haproxy controller def from file
+  shell: "/usr/local/bin/kubectl apply -f /opt/kubes-manifests/haproxy-ingress-daemonset.yaml"
+  become: true
+  retries: 30
+  delay: 10
+

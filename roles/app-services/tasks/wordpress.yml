@@ -1,0 +1,44 @@
+---
+
+- name: Check for service to expose wordpress
+  shell: "{{ kubectl_command }} get services -n=fables-wordpress | grep fables-wordpress-service-np"
+  become: true
+  register: wordpress_expose_service_exists
+  ignore_errors: true
+
+- name: Kubectl delete service to expose wordpress
+  shell: "{{ kubectl_command }} delete service -n=fables-wordpress fables-wordpress-service-np"
+  become: true
+  when: wordpress_expose_service_exists.stdout != ""
+
+- name: Kubectl expose wordpress
+  shell: |
+    {{ kubectl_command }} expose service fables-wordpress-service \
+     -n=fables-wordpress \
+     --type=NodePort \
+     --target-port=80 \
+     --name=fables-wordpress-service-np
+  become: true
+
+- name: Get NodePort IP
+  shell: ip route | tail -n1 | awk '{ print $9 }'
+  register: wordpress_nodeport_ip
+  become: false
+
+- name: Wait a few seconds to be sure service is available
+  pause:
+    seconds: 5
+
+- name: Get NodePort Port
+  shell: |
+    {{ kubectl_command }} get services -o wide -n fables-wordpress | \
+      grep fables-wordpress-service-np | \
+      awk '{ print $5 }' | \
+      sed 's,/.*,,' | \
+      sed 's/.*://'
+  register: wordpress_nodeport_port
+  become: true
+
+- name: Display Wordpress URL
+  debug:
+    msg: "Wordpress URL http://{{ wordpress_nodeport_ip.stdout }}:{{ wordpress_nodeport_port.stdout }}"

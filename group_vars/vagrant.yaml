@@ -1,0 +1,4 @@
+---
+
+os_user_name: vagrant
+deploy_type: vagrant

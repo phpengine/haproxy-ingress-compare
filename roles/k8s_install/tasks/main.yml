@@ -1,0 +1,92 @@
+---
+
+- name: Check if microk8s exists
+  shell: snap list | awk '{ print $1 }' | grep microk8s
+  become: true
+  register: microk8s_snap_exists
+  ignore_errors: true
+
+- name: Ensure microk8s installed
+  shell: snap install microk8s --classic
+  become: true
+  when: microk8s_snap_exists.stdout != 'microk8s'
+
+- name: Check if k9s exists
+  shell: ls -1 /usr/bin/k9s
+  become: true
+  register: k9s_binary_exists
+  ignore_errors: true
+
+- name: Ensure k9s installed
+  shell: |
+    cd /opt/
+    rm -f k9s_Linux_x86_64.tar.gz*
+    wget https://github.com/derailed/k9s/releases/download/v0.26.0/k9s_Linux_x86_64.tar.gz
+    tar -xvf k9s_Linux_x86_64.tar.gz
+    mv k9s /usr/bin/
+    chmod +x /usr/bin/k9s
+  become: true
+  when: k9s_binary_exists.stdout != '/usr/bin/k9s'
+
+- name: Install python3-pip package
+  shell: |
+    apt-get update
+    apt-get install python3-pip -y
+    pip install openshift pyyaml kubernetes
+  become: true
+  retries: 3
+  ignore_errors: true
+
+- name: Install kubernetes python package
+  ansible.builtin.pip:
+    name: kubernetes
+  become: true
+
+- name: Ensure group exists
+  shell: usermod -a -G microk8s {{ os_user_name }}
+  become: true
+
+- name: Start Microk8s
+  shell: microk8s.start
+  become: true
+  retries: 10
+  delay: 10
+
+- name: Check microk8s status
+  shell: microk8s.status
+  become: true
+
+- name: Enable microk8s DNS
+  shell: microk8s.enable dns
+  become: true
+
+- name: Enable microk8s Ingress
+  shell: microk8s.enable ingress
+  become: true
+
+- name: Enable microk8s community repo
+  shell: |
+    microk8s enable community
+    microk8s.enable istio
+  become: true
+
+- name: Enable microk8s Istio
+  shell: |
+    microk8s enable community
+    microk8s.enable istio
+  become: true
+
+- name: Create Kube config file for root
+  shell: "{{ k8s_generate_config_command }} --view raw > ~/.kube/config"
+  become: true
+
+- name: Create Kube config file for user
+  shell: |
+    mkdir -p /home/{{ os_user_name }}/.kube
+    {{ k8s_generate_config_command }} --view raw > /home/{{ os_user_name }}/.kube/config
+    echo 'KUBECONFIG=~/.kube/config' > /root/.bash_profile
+    echo 'KUBECONFIG=~/.kube/config' > /home/{{ os_user_name }}/.bash_profile
+    chown -R {{ os_user_name }}:{{ os_user_name }} /home/{{ os_user_name }}/.kube
+    chown -R {{ os_user_name }}:{{ os_user_name }} /home/{{ os_user_name }}/.bash_profile
+  become: true
+

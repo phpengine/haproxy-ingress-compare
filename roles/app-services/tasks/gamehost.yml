@@ -1,0 +1,44 @@
+---
+
+- name: Check for service to expose gamehost
+  shell: "{{ kubectl_command }} get services -n=fables-games | grep fables-gamehost-service-np"
+  become: true
+  register: gamehost_expose_service_exists
+  ignore_errors: true
+
+- name: Kubectl delete service to expose gamehost
+  shell: "{{ kubectl_command }} delete service -n=fables-games fables-gamehost-service-np"
+  become: true
+  when: gamehost_expose_service_exists.stdout != ""
+
+- name: Kubectl expose gamehost
+  shell: |
+    {{ kubectl_command }} expose service fables-gamehost-service \
+     -n=fables-games \
+     --type=NodePort \
+     --target-port=80 \
+     --name=fables-gamehost-service-np
+  become: true
+
+- name: Get NodePort IP
+  shell: ip route | tail -n1 | awk '{ print $9 }'
+  register: gamehost_nodeport_ip
+  become: false
+
+- name: Wait a few seconds to be sure service is available
+  pause:
+    seconds: 5
+
+- name: Get NodePort Port
+  shell: |
+    {{ kubectl_command }} get services -o wide -n fables-games | \
+      grep fables-gamehost-service-np | \
+      awk '{ print $5 }' | \
+      sed 's,/.*,,' | \
+      sed 's/.*://'
+  register: gamehost_nodeport_port
+  become: true
+
+- name: Display Gamehost URL
+  debug:
+    msg: "Gamehost URL http://{{ gamehost_nodeport_ip.stdout }}:{{ gamehost_nodeport_port.stdout }}"

@@ -1,0 +1,16 @@
+---
+
+os_user_name: vagrant
+deploy_type: vagrant
+k8s_generate_config_command: microk8s config
+k8s_context: microk8s
+kubectl_command: microk8s.kubectl
+helm_command: microk8s.helm3
+deploy_protocol: http
+deploy_tld: dev
+bridge_interface:
+
+app_manifests:
+    - namespaces.yml
+    - registry-secret.yml
+    - helloworld.yml

@@ -1,0 +1,52 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: haproxy-to-istio
+  namespace: default
+  annotations:
+    haproxy-ingress.github.io/backend-protocol: "https"
+    haproxy-ingress.github.io/forwardfor: "add"
+spec:
+  defaultBackend:
+    resource:
+      apigroup: networking.istio.io
+      kind: VirtualService
+      name: vqcm-main
+  rules:
+  - host: "{{ server_hostname }}"
+    http:
+      paths:
+      - backend:
+          resource:
+            apigroup: networking.istio.io
+            kind: VirtualService
+            name: vqcm-main
+        path: /
+        pathType: Prefix
+  - host: "login.{{ server_hostname }}"
+    http:
+      paths:
+      - backend:
+          resource:
+            apigroup: networking.istio.io
+            kind: VirtualService
+            name: vqcm-idsrv
+        path: /
+        pathType: Prefix
+  - host: "kibana.{{ server_hostname }}"
+    http:
+      paths:
+      - backend:
+          resource:
+            apigroup: networking.istio.io
+            kind: VirtualService
+            name: vqcm-kibana
+        path: /
+        pathType: Prefix
+  tls:
+    - hosts:
+        - "{{ server_hostname }}"
+        - "login.{{ server_hostname }}"
+        - "kibana.{{ server_hostname }}"
+      secretName: self-signed-certificate

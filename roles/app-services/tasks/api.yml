@@ -1,0 +1,44 @@
+---
+
+- name: Check for service to expose api
+  shell: "{{ kubectl_command }} get services -n=fables-api | grep fables-api-service-np"
+  become: true
+  register: api_expose_service_exists
+  ignore_errors: true
+
+- name: Kubectl delete service to expose api
+  shell: "{{ kubectl_command }} delete service -n=fables-api fables-api-service-np"
+  become: true
+  when: api_expose_service_exists.stdout != ""
+
+- name: Kubectl expose api
+  shell: |
+    {{ kubectl_command }} expose service fables-api-service \
+     -n=fables-api \
+     --type=NodePort \
+     --target-port=80 \
+     --name=fables-api-service-np
+  become: true
+
+- name: Get NodePort IP
+  shell: ip route | tail -n1 | awk '{ print $9 }'
+  register: api_nodeport_ip
+  become: false
+
+- name: Wait a few seconds to be sure service is available
+  pause:
+    seconds: 5
+
+- name: Get NodePort Port
+  shell: |
+    {{ kubectl_command }} get services -o wide -n fables-api | \
+      grep fables-api-service-np | \
+      awk '{ print $5 }' | \
+      sed 's,/.*,,' | \
+      sed 's/.*://'
+  register: api_nodeport_port
+  become: true
+
+- name: Display API URL
+  debug:
+    msg: "API URL http://{{ api_nodeport_ip.stdout }}:{{ api_nodeport_port.stdout }}"

@@ -1,0 +1,10 @@
+---
+
+- name: Service setup for apps
+  include_tasks: "{{ item }}"
+  with_items:
+    - helloworld.yml
+    - api.yml
+    - gamehost.yml
+    - wordpress.yml
+

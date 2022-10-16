@@ -1,0 +1,20 @@
+---
+
+- name: Get Public IP
+  shell: ip route | tail -n1 | awk '{ print $9 }'
+  register: hostfile_ip
+  become: false
+
+
+- name: Add to hostfile for Public IP
+  shell: |
+    ptconfigure he rm -yg --host-name="{{ item }}"
+    ptconfigure he add -yg --host-name="{{ item }}" --host-ip="{{ hostfile_ip.stdout }}"
+  become: true
+  delegate_to: localhost
+  with_items:
+    - helloworld.doubleingress.dev
+    - nginx-to-helloworld.doubleingress.dev
+    - gw-istio-to-helloworld.doubleingress.dev
+    - istio-to-helloworld.doubleingress.dev
+    - nginx-to-istio.doubleingress.dev

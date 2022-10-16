@@ -1,0 +1,12 @@
+---
+
+- name: Install k8s
+#  hosts: vagrant
+  hosts: all
+  become: true
+  gather_facts: true
+
+  roles:
+    - k8s_install
+    - hostfile_entries
+

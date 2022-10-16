@@ -1,0 +1,27 @@
+---
+
+- name: Display URL For Helloworld Nodeport
+  debug:
+    msg: "Website URL : http://helloworld.doubleingress.dev:30222"
+
+- name: Display URL For Nginx to Helloworld
+  debug:
+    msg: "Website URL : http://nginx-to-helloworld.doubleingress.dev"
+
+- name: Get Istio NodePort Port
+  shell: |
+    {{ kubectl_command }} get services -o wide -n istio-system istio-ingressgateway | \
+      grep istio-ingressgateway | \
+      awk '{ print $5 }' | \
+      sed 's/.*,80://' | \ 
+      sed 's,/TCP.*,,'
+  register: istio_nodeport_port
+  become: true
+
+- name: Display URL For Istio to Helloworld
+  debug:
+    msg: "Istio to Helloworld URL : http://istio-to-helloworld.doubleingress.dev:{{ istio_nodeport_port.stdout }}/"
+
+- name: Display URL For Nginx to Istio to Helloworld
+  debug:
+    msg: "Nginx to Istio to Helloworld URL : http://nginx-to-istio.doubleingress.dev"

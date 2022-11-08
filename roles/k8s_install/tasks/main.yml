@@ -7,7 +7,7 @@
   ignore_errors: true
 
 - name: Ensure microk8s installed
-  shell: snap install microk8s --classic
+  shell: snap install microk8s --classic --channel=1.21/stable
   become: true
   when: microk8s_snap_exists.stdout != 'microk8s'
 
@@ -32,7 +32,7 @@
   shell: |
     apt-get update
     apt-get install python3-pip -y
-    pip install openshift pyyaml kubernetes
+    pip install openshift pyyaml kubernetes docker
   become: true
   retries: 3
   ignore_errors: true
@@ -60,21 +60,20 @@
   shell: microk8s.enable dns
   become: true
 
-- name: Enable microk8s Ingress
+- name: Enable microk8s Nginx Ingress
   shell: microk8s.enable ingress
   become: true
+  ignore_errors: true
 
 - name: Enable microk8s community repo
-  shell: |
-    microk8s enable community
-    microk8s.enable istio
+  shell: microk8s.enable community
   become: true
+  ignore_errors: true
 
-- name: Enable microk8s Istio
-  shell: |
-    microk8s enable community
-    microk8s.enable istio
-  become: true
+#- name: Enable microk8s istio repo
+#  shell: microk8s.enable istio
+#  become: true
+#  retries: 3
 
 - name: Create Kube config file for root
   shell: "{{ k8s_generate_config_command }} --view raw > ~/.kube/config"
@@ -89,4 +88,27 @@
     chown -R {{ os_user_name }}:{{ os_user_name }} /home/{{ os_user_name }}/.kube
     chown -R {{ os_user_name }}:{{ os_user_name }} /home/{{ os_user_name }}/.bash_profile
   become: true
+
+#- name: Install istio ctl
+#  shell: curl -L https://istio.io/downloadIstio | ISTIO_VERSION=1.9.2 sh -
+#  become: true
+#  retries: 10
+#  delay: 5
+
+- name: Copy Istio file in
+  copy:
+    src: files/istio-1.9.2-linux-amd64.tar.gz
+    dest: /root/istio-1.9.2-linux-amd64.tar.gz
+
+- name: Install istio ctl
+  shell: |
+    cd /root/
+    tar -xzf istio-1.9.2-linux-amd64.tar.gz
+    export PATH="$PATH:/root/istio-1.9.2/bin"
+  become: true
+
+- name: Install istio via istio ctl
+  shell: /root/istio-1.9.2/bin/istioctl install --set profile=demo -y
+  become: true
+  retries: 3
 

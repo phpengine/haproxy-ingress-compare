@@ -1,6 +1,3 @@
-# VQ Modified HAProxy Daemonset
-
-
 ## Notes
 
 Originally taken from the following github file: 

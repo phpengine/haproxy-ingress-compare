@@ -16,19 +16,23 @@ Vagrant.configure("2") do |config|
   config.vm.network "public_network", bridge: bridge_interface
 
   config.vm.provider "virtualbox" do |vb|
-    vb.cpus  = "8"
+    vb.cpus  = "4"
     vb.memory = "4096"
   end
 
 #   config.vm.provision "ansible" do |ansible|
 #     ansible.playbook = "playbook-install.yml"
 #   end
+#
+#   config.vm.provision "ansible" do |ansible|
+#     ansible.playbook = "playbook-configure.yml"
+#     ansible.extra_vars = {
+#       bridge_interface: bridge_interface
+#     }
+#   end
 
   config.vm.provision "ansible" do |ansible|
-    ansible.playbook = "playbook-configure.yml"
-    ansible.extra_vars = {
-      bridge_interface: bridge_interface
-    }
+    ansible.playbook = "playbook-test.yml"
   end
-  
+
 end

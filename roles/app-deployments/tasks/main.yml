@@ -3,7 +3,6 @@
 - name: Ensure Manifests directory
   shell: |
     mkdir -p /opt/kubes-manifests/
-    mkdir -p /opt/kubes-manifests/corpwebsites
 
 - name: Copy manifests
   template:

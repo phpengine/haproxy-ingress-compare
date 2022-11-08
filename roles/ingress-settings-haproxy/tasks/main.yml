@@ -5,16 +5,17 @@
 
 - name: Template over manifests
   template:
-    src: "templates/ingress-haproxy.yml"
-    dest: "/opt/kubes-manifests/ingress-haproxy.yml"
+    src: "templates/{{ item }}"
+    dest: "/opt/kubes-manifests/{{ item }}"
+  with_items:
+    - "ingress-haproxy-to-helloworld.yml"
+#    - "ingress-haproxy-to-istio.yml"
 
 - name: Apply haproxy ingress def from file
-  shell: "/usr/local/bin/kubectl apply -f /opt/kubes-manifests/ingress-haproxy.yml --validate=false"
+  shell: "{{ kubectl_command }} apply -f /opt/kubes-manifests/{{ item }} --validate=false"
   become: true
   retries: 30
   delay: 10
-
-#- name: Restart RKE2 Server
-#  ansible.builtin.service:
-#    name: "rke2-server"
-#    state: restarted
+  with_items:
+    - "ingress-haproxy-to-helloworld.yml"
+#    - "ingress-haproxy-to-istio.yml"

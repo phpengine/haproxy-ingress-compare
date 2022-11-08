@@ -1,0 +1,9 @@
+---
+
+- name: Test that IP Logging works
+  hosts: all
+
+  roles:
+    - url-display
+    - test-logs
+

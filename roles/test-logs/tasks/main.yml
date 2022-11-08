@@ -1,12 +1,12 @@
 ---
 
 - name: Request from laptop to NGinx Ingress URL
-  shell: "curl http://nginx-to-istio.doubleingress.dev"
+  shell: "curl http://{{ server_hostname }}"
   delegate_to: localhost
   ignore_errors: true
 
 - name: Request from laptop to Istio Ingress URL
-  shell: "curl http://istio-to-helloworld.doubleingress.dev:{{ istio_nodeport_port.stdout }}"
+  shell: "curl http://istio-to-helloworld.{{ server_hostname }}:{{ istio_nodeport_port.stdout }}"
   delegate_to: localhost
   ignore_errors: true
 

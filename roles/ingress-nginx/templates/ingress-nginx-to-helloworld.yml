@@ -2,7 +2,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: nginx-to-istio
+  name: nginx-to-helloworld
   namespace: default
   annotations:
     compute-full-forwarded-for: "true"
@@ -11,18 +11,18 @@ spec:
   ingressClassName: public
   defaultBackend:
     service:
-      name: istio-ingressgateway
+      name: demo-helloworld
       port:
-        number: 80
+        name: http
   rules:
   - host: "{{ server_hostname }}"
     http:
       paths:
       - backend:
           service:
-            name: istio-ingressgateway
+            name: demo-helloworld
             port:
-              number: 80
+              name: http
         path: /
         pathType: Prefix
   - host: "nginx.{{ server_hostname }}"
@@ -32,6 +32,6 @@ spec:
           service:
             name: demo-helloworld
             port:
-              number: 80
+              name: http
         path: /
         pathType: Prefix

@@ -13,8 +13,8 @@
   become: true
   delegate_to: localhost
   with_items:
-    - helloworld.doubleingress.dev
-    - nginx-to-helloworld.doubleingress.dev
-    - gw-istio-to-helloworld.doubleingress.dev
-    - istio-to-helloworld.doubleingress.dev
-    - nginx-to-istio.doubleingress.dev
+    - ingress-comparison.local
+    - helloworld.ingress-comparison.local
+    - nginx.ingress-comparison.local
+    - haproxy.ingress-comparison.local
+    - istio.ingress-comparison.local

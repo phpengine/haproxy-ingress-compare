@@ -8,9 +8,10 @@ kubectl_command: microk8s.kubectl
 helm_command: microk8s.helm3
 deploy_protocol: http
 deploy_tld: dev
-bridge_interface:
+
+server_hostname: ingress-comparison.local
+
+bridge_interface: wlp3s0
 
 app_manifests:
-    - namespaces.yml
-    - registry-secret.yml
     - helloworld.yml

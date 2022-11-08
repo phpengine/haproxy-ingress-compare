@@ -131,10 +131,9 @@ spec:
         image: haproxytech/kubernetes-ingress
         args:
           - --configmap=haproxy-controller/haproxy-kubernetes-ingress
-          - --default-backend-service=default/istio-ingressgateway
+          - --default-backend-service=istio-system/istio-ingressgateway
           - --default-ssl-certificate=default/self-signed-certificate
           - --ingress.class=haproxy
-          - --empty-ingress-class
           - --log=debug
           - --controller.logging.level=debug
           - --controller.logging.traffic.address=stdout
@@ -191,17 +190,17 @@ spec:
     port: 80
     protocol: TCP
     targetPort: 80
-    nodePort: 2080
+    nodePort: 32080
   - name: https
     port: 443
     protocol: TCP
     targetPort: 443
-    nodePort: 2443
+    nodePort: 32443
   - name: stat
     port: 1024
     protocol: TCP
     targetPort: 1024
-    nodePort: 1024
+    nodePort: 31024
 ---
 apiVersion: policy/v1beta1
 kind: PodSecurityPolicy

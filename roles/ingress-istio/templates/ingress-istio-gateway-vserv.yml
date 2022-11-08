@@ -3,13 +3,13 @@ apiVersion: v1
 kind: Service
 metadata:
   labels:
-    app: vqcomm-vservice
-  name: vqcomm-vservice-np
-  namespace: corpwebsites
+    app: demo-vservice
+  name: demo-vservice-np
+  namespace: default
 spec:
   type: NodePort
   selector:
-    app: vqcomm-vservice
+    app: demo-vservice
   ports:
     - name: http
       protocol: TCP
@@ -23,11 +23,11 @@ metadata:
   name: istio-to-helloworld-gateway
 spec:
   selector:
-    app: vqcomm-vservice
+    app: demo-vservice
     istio: ingressgateway
   servers:
   - hosts:
-      - "gw-istio-to-helloworld.doubleingress.dev"
+      - "{{ server_hostname }}"
     port:
       number: 30100
       name: http
@@ -37,16 +37,16 @@ apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
 metadata:
   labels:
-    app: vqcomm-vservice
+    app: demo-vservice
   name: istio-to-helloworld-vservice
 spec:
   hosts:
-  - "gw-istio-to-helloworld.doubleingress.dev"
+  - "{{ server_hostname }}"
   gateways:
   - istio-to-helloworld-gateway
   http:
   - route:
     - destination:
-        host: vqcomm-helloworld
+        host: demo-helloworld
         port:
           number: 80

@@ -4,11 +4,12 @@
   shell: mkdir -p /opt/kubes-manifests/
 
 - name: Copy manifests
-  copy:
+  template:
     src: "templates/{{ item }}"
     dest: "/opt/kubes-manifests/{{ item }}"
   with_items:
-    - ingress-nginx.yml
+    - ingress-nginx-to-helloworld.yml
+#    - ingress-nginx-to-istio.yml
 
 - name: Create a Deployment by reading the definition from a local file
   kubernetes.core.k8s:
@@ -18,4 +19,5 @@
     state: present
     src: "/opt/kubes-manifests/{{ item }}"
   with_items:
-    - ingress-nginx.yml
+    - ingress-nginx-to-helloworld.yml
+#    - ingress-nginx-to-istio.yml

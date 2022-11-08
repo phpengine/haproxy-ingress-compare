@@ -9,6 +9,7 @@ metadata:
     haproxy-ingress.github.io/backend-protocol: "h2"
     haproxy-ingress.github.io/secure-backends: "false"
 spec:
+  ingressClassName: haproxy
   defaultBackend:
     service:
       name: istio-ingressgateway
@@ -25,7 +26,7 @@ spec:
               name: http2
         path: /
         pathType: Prefix
-  - host: "login.{{ server_hostname }}"
+  - host: "haproxy.{{ server_hostname }}"
     http:
       paths:
       - backend:
@@ -35,19 +36,3 @@ spec:
               name: http2
         path: /
         pathType: Prefix
-  - host: "kibana.{{ server_hostname }}"
-    http:
-      paths:
-      - backend:
-          service:
-            name: istio-ingressgateway
-            port:
-              name: http2
-        path: /
-        pathType: Prefix
-  tls:
-    - hosts:
-        - "{{ server_hostname }}"
-        - "login.{{ server_hostname }}"
-        - "kibana.{{ server_hostname }}"
-      secretName: self-signed-certificate

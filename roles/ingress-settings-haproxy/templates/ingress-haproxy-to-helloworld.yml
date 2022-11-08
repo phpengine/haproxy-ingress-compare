@@ -1,0 +1,37 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: haproxy-to-helloworld
+  namespace: default
+  annotations:
+    haproxy-ingress.github.io/backend-protocol: "h1"
+    haproxy-ingress.github.io/secure-backends: "false"
+spec:
+  ingressClassName: haproxy
+  defaultBackend:
+    service:
+      name: istio-ingressgateway
+      port:
+        name: http
+  rules:
+  - host: "{{ server_hostname }}"
+    http:
+      paths:
+      - backend:
+          service:
+            name: demo-helloworld
+            port:
+              name: http
+        path: /
+        pathType: Prefix
+  - host: "haproxy.{{ server_hostname }}"
+    http:
+      paths:
+      - backend:
+          service:
+            name: demo-helloworld
+            port:
+              name: http
+        path: /
+        pathType: Prefix
